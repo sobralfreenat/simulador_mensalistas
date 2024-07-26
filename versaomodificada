@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação de Crescimento e Embarque de CPFs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            flex: 1 1 calc(33.333% - 20px);
+            margin: 10px;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            color: #555;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            display: block;
+            width: 30%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px auto;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .results-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .result {
+            flex: 1 1 calc(33.333% - 20px);
+            margin: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .results h2 {
+            color: #333;
+        }
+
+        .results p {
+            color: #555;
+        }
+
+        #chart {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulação Custos Receita e Lucro</h1>
+		<h5> <br></h5>
+        <form id="simulation-form" class="form-container">
+            <div class="form-group">
+                <label for="num-clientes">Número de Clientes:</label>
+                <input type="number" id="num-clientes" name="num-clientes" value="25" required>
+            </div>
+            <div class="form-group">
+                <label for="mensalidade">Mensalidade por Cliente (R$):</label>
+                <input type="number" id="mensalidade" name="mensalidade" value="1164" required>
+            </div>
+            <div class="form-group">
+                <label for="cpfs-por-cliente">Número de CPFs por Cliente:</label>
+                <input type="number" id="cpfs-por-cliente" name="cpfs-por-cliente" value="12" required>
+            </div>
+            <div class="form-group">
+                <label for="preco-cpf-min">Preço de Venda por CPF (min) (R$):</label>
+                <input type="number" id="preco-cpf-min" name="preco-cpf-min" value="197" required>
+            </div>
+            <div class="form-group">
+                <label for="preco-cpf-max">Preço de Venda por CPF (max) (R$):</label>
+                <input type="number" id="preco-cpf-max" name="preco-cpf-max" value="197" required>
+            </div>
+            <div class="form-group">
+                <label for="custo-cpf">Custo por CPF Embarcado (R$):</label>
+                <input type="number" id="custo-cpf" name="custo-cpf" value="96" required>
+            </div>
+            <div class="form-group">
+                <label for="custo-fixo">Investimento Mensal (Assessoria) (R$):</label>
+                <input type="number" id="custo-fixo" name="custo-fixo" value="10000" required>
+            </div>
+            <div class="form-group">
+                <label for="num-cpfs">Número de CPFs a Embarcar:</label>
+                <input type="number" id="num-cpfs" name="num-cpfs" value="250" required>
+            </div>
+            <div class="form-group">
+                <label for="cpfs-semana-min">Capac. de Embarque Semanal (min):</label>
+                <input type="number" id="cpfs-semana-min" name="cpfs-semana-min" value="8" required>
+            </div>
+            <div class="form-group">
+                <label for="cpfs-semana-max">Capac. de Embarque Semanal (max):</label>
+                <input type="number" id="cpfs-semana-max" name="cpfs-semana-max" value="8" required>
+            </div>
+            <div class="form-group">
+                <label for="anos">Anos:</label>
+                <input type="number" id="anos" name="anos" value="0" required>
+            </div>
+            <div class="form-group">
+                <label for="meses">Meses:</label>
+                <input type="number" id="meses" name="meses" value="3" required>
+            </div>
+        </form>
+        <div class="button-container">
+            <button type="button" onclick="simulate()">Simular</button>
+        </div>
+
+        <div class="results-container">
+            <div class="result">
+                <h2>Resultados Simulação Parceiro</h2>
+                <p id="result1"></p>
+            </div>
+            <div class="result">
+                <h2>Resultados da Simulação Admin</h2>
+                <p id="result2"></p>
+            </div>
+        </div>
+
+        <div id="chart"></div>
+
+        <div class="button-container">
+            <button type="button" onclick="saveScenario()">Salvar Cenário</button>
+            <input type="file" id="file-input" style="display: none;" onchange="loadScenarioFromFile(event)">
+            <button type="button" onclick="document.getElementById('file-input').click()">Carregar Cenário</button>
+        </div>
+    </div>
+
+    <script>
+        function simulate() {
+            const numClientes = parseInt(document.getElementById('num-clientes').value);
+            const mensalidade = parseFloat(document.getElementById('mensalidade').value);
+            const cpfsPorCliente = parseInt(document.getElementById('cpfs-por-cliente').value);
+            const precoCpfMin = parseFloat(document.getElementById('preco-cpf-min').value);
+            const precoCpfMax = parseFloat(document.getElementById('preco-cpf-max').value);
+            const custoCpf = parseFloat(document.getElementById('custo-cpf').value);
+            const custoFixo = parseFloat(document.getElementById('custo-fixo').value);
+            const numCpfs = parseInt(document.getElementById('num-cpfs').value);
+            const cpfsSemanaMin = parseInt(document.getElementById('cpfs-semana-min').value);
+            const cpfsSemanaMax = parseInt(document.getElementById('cpfs-semana-max').value);
+            const anos = parseInt(document.getElementById('anos').value);
+            const meses = parseInt(document.getElementById('meses').value);
+
+            const totalMeses = (anos * 12) + meses;
+            const numClientesMes = numClientes / totalMeses;
+            const cpfsMes = numClientesMes * cpfsPorCliente;
+            const receitaCpfMin = cpfsMes * precoCpfMin * totalMeses;
+            const receitaCpfMax = cpfsMes * precoCpfMax * totalMeses;
+            const receitaMensalidade = numClientesMes * mensalidade * totalMeses;
+            const receitaTotalMin = receitaCpfMin + receitaMensalidade;
+            const receitaTotalMax = receitaCpfMax + receitaMensalidade;
+            const custoFixoTotal = custoFixo * totalMeses;
+            const custoVariavelTotal = cpfsMes * custoCpf * totalMeses;
+            const custoMensalidadesCNPJs = numClientesMes * mensalidade * totalMeses;
+            const custoMensalidadesCPFs = cpfsMes * custoCpf * totalMeses;
+            const custoTotal = custoFixoTotal + custoVariavelTotal;
+            const lucroMin = receitaTotalMin - custoTotal;
+            const lucroMax = receitaTotalMax - custoTotal;
+
+            document.getElementById('result1').innerHTML = `Receita Total (Min): R$ ${receitaTotalMin.toFixed(2)}<br>
+            Receita Total (Max): R$ ${receitaTotalMax.toFixed(2)}<br>
+            Custo Total: R$ ${custoTotal.toFixed(2)}<br>
+            Lucro (Min): R$ ${lucroMin.toFixed(2)}<br>
+            Lucro (Max): R$ ${lucroMax.toFixed(2)}`;
+
+            document.getElementById('result2').innerHTML = `Custo Variável Total: R$ ${custoVariavelTotal.toFixed(2)}<br>
+            Investimento Mensal (Assessoria): R$ ${custoFixoTotal.toFixed(2)}<br>
+            Mensalidade de CNPJs: R$ ${custoMensalidadesCNPJs.toFixed(2)}<br>
+            Mensalidade de CPFs: R$ ${custoMensalidadesCPFs.toFixed(2)}<br>
+            Número de Clientes por Mês: ${numClientesMes.toFixed(2)}<br>
+            CPFs por Mês: ${cpfsMes.toFixed(2)}`;
+
+            var data = [
+                {
+                    x: ['Assessoria Mensal', 'Mensalidade de CNPJs', 'Mensalidade de CPFs'],
+                    y: [custoFixoTotal, custoMensalidadesCNPJs, custoMensalidadesCPFs],
+                    type: 'bar',
+                    name: 'Custos',
+                    marker: { color: ['darkgreen', 'lightgray', 'lightgray'] }
+                },
+                {
+                    x: ['Custo Total', 'Receita Total (Min)', 'Receita Total (Max)', 'Lucro (Min)', 'Lucro (Max)'],
+                    y: [custoTotal, receitaTotalMin, receitaTotalMax, lucroMin, lucroMax],
+                    type: 'bar',
+                    name: 'Compara',
+                    marker: { color: ['gold', 'darkblue', 'blue', 'lightblue', 'darkgreen'] }
+                }
+            ];
+
+            var layout = {
+                title: 'Comparação Custos Receita e Lucro a longo do tempo (Proj 6 meses)',
+                barmode: 'group'
+            };
+
+            Plotly.newPlot('chart', data, layout);
+        }
+
+        function saveScenario() {
+            const scenario = {
+                numClientes: document.getElementById('num-clientes').value,
+                mensalidade: document.getElementById('mensalidade').value,
+                cpfsPorCliente: document.getElementById('cpfs-por-cliente').value,
+                precoCpfMin: document.getElementById('preco-cpf-min').value,
+                precoCpfMax: document.getElementById('preco-cpf-max').value,
+                custoCpf: document.getElementById('custo-cpf').value,
+                custoFixo: document.getElementById('custo-fixo').value,
+                numCpfs: document.getElementById('num-cpfs').value,
+                cpfsSemanaMin: document.getElementById('cpfs-semana-min').value,
+                cpfsSemanaMax: document.getElementById('cpfs-semana-max').value,
+                anos: document.getElementById('anos').value,
+                meses: document.getElementById('meses').value
+            };
+
+            const blob = new Blob([JSON.stringify(scenario, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cenario.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function loadScenarioFromFile(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const scenario = JSON.parse(event.target.result);
+                document.getElementById('num-clientes').value = scenario.numClientes;
+                document.getElementById('mensalidade').value = scenario.mensalidade;
+                document.getElementById('cpfs-por-cliente').value = scenario.cpfsPorCliente;
+                document.getElementById('preco-cpf-min').value = scenario.precoCpfMin;
+                document.getElementById('preco-cpf-max').value = scenario.precoCpfMax;
+                document.getElementById('custo-cpf').value = scenario.custoCpf;
+                document.getElementById('custo-fixo').value = scenario.custoFixo;
+                document.getElementById('num-cpfs').value = scenario.numCpfs;
+                document.getElementById('cpfs-semana-min').value = scenario.cpfsSemanaMin;
+                document.getElementById('cpfs-semana-max').value = scenario.cpfsSemanaMax;
+                document.getElementById('anos').value = scenario.anos;
+                document.getElementById('meses').value = scenario.meses;
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
